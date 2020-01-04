@@ -12,7 +12,9 @@ namespace ToDoListAPI.Data
     {
         public AutoMapperProfile()
         {
-            CreateMap<ToDoList, ToDoListDTO>();
+            CreateMap<ToDoList, ToDoListDTO>()
+                .ForMember(x => x.ToDoItems, x => x.MapFrom(y => y.ToDoItem));
+
             CreateMap<ToDoListDTO, ToDoList>();
 
             CreateMap<ToDoItem, ToDoItemDTO>();

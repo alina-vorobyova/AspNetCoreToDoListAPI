@@ -37,7 +37,7 @@ namespace ToDoListAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<ToDoListDTO>> GetAll()
         {
-            var toDoLists = context.ToDoLists.ToList();
+            var toDoLists = context.ToDoLists.Include(x => x.ToDoItem).ToList();
 
             if (toDoLists.Count == 0)
                 return NotFound();
@@ -59,7 +59,7 @@ namespace ToDoListAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<ToDoListDTO> GetById(int id)
         {
-            var toDoList = context.ToDoLists.Find(id);
+            var toDoList = context.ToDoLists.Include(x => x.ToDoItem).FirstOrDefault(x => x.Id == id);
 
             if (toDoList == null)
                 return NotFound();
