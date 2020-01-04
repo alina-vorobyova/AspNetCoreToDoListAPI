@@ -13,6 +13,5 @@ namespace ToDoListAPI.Model.DTO
         public DateTime Deadline { get; set; }
 
         public int ToDoListId { get; set; }
-        public ToDoList ToDoList { get; set; }
     }
 }

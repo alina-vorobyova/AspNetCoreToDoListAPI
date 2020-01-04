@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,6 +48,28 @@ namespace ToDoListAPI.Controllers
         }
 
 
+
+        /// <summary>
+        /// Get ToDoList by Id
+        /// </summary>
+        /// <param name="id">ToDoList Id</param>
+        /// <returns>ToDoList</returns>
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<ToDoListDTO> GetById(int id)
+        {
+            var toDoList = context.ToDoLists.Find(id);
+
+            if (toDoList == null)
+                return NotFound();
+
+            var toDoListDto = mapper.Map<ToDoListDTO>(toDoList);
+
+            return toDoListDto;
+        }
+
+
         /// <summary>
         ///     Add a new ToDoList
         /// </summary>
@@ -69,6 +92,12 @@ namespace ToDoListAPI.Controllers
                 return BadRequest();
         }
 
+
+        /// <summary>
+        /// Delete ToDoList
+        /// </summary>
+        /// <param name="id">ToDoList Id</param>
+        /// <returns>No Content</returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -82,6 +111,40 @@ namespace ToDoListAPI.Controllers
             context.SaveChanges();
 
             return NoContent();
+        }
+
+
+        /// <summary>
+        /// Replace ToDoList
+        /// </summary>
+        /// <param name="id">ToDoList Id</param>
+        /// <param name="toDoListDTO">New ToDoList object</param>
+        /// <returns>Replaced ToDoList</returns>
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<ToDoListDTO> Replace(int id, ToDoListDTO toDoListDTO)
+        {
+            toDoListDTO.Id = id;
+
+            var toDoList = mapper.Map<ToDoList>(toDoListDTO);
+
+            try
+            {
+                context.ToDoLists.Update(toDoList);
+                context.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (context.ToDoLists.Find(id) == null)
+                    return NotFound();
+                else
+                    throw;
+            }
+
+            toDoListDTO = mapper.Map<ToDoListDTO>(toDoList);
+
+            return toDoListDTO;
         }
     }
 }

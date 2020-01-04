@@ -10,6 +10,6 @@ namespace ToDoListAPI.Model.DTO
         public int Id { get; set; }
         public string Title { get; set; }
         public string Color { get; set; }
-        public ICollection<ToDoItem> ToDoItem { get; set; }
+        public ICollection<ToDoItemDTO> ToDoItems { get; set; }
     }
 }

@@ -15,6 +15,9 @@ namespace ToDoListAPI.Data
             CreateMap<ToDoList, ToDoListDTO>();
             CreateMap<ToDoListDTO, ToDoList>();
 
+            CreateMap<ToDoItem, ToDoItemDTO>();
+            CreateMap<ToDoItemDTO, ToDoItem>();
+
         }
     }
 }
