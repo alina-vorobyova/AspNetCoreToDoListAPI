@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using AutoMapper;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace ToDoListAPI
 {
@@ -36,6 +37,8 @@ namespace ToDoListAPI
                 options.UseSqlServer(Configuration.GetConnectionString("Default"));
             });
 
+            services.AddCors();
+
             services.AddControllers()
                 .AddFluentValidation(options => options.RegisterValidatorsFromAssembly(Assembly.GetExecutingAssembly()));
 
@@ -48,6 +51,11 @@ namespace ToDoListAPI
                 c.IncludeXmlComments(xmlPath);
             });
 
+            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = false;
+            }).AddEntityFrameworkStores<ToDoListDbContext>();
+
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
         }
 
@@ -59,6 +67,11 @@ namespace ToDoListAPI
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(options => {
+                options.AllowAnyOrigin();
+                options.AllowAnyHeader();
+                options.AllowAnyMethod();
+            });
             app.UseSwagger();
 
             app.UseSwaggerUI(c =>

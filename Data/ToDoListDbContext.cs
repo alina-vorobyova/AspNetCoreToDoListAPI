@@ -1,4 +1,6 @@
 ﻿using JetBrains.Annotations;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,13 +11,14 @@ using ToDoListAPI.Model;
 
 namespace ToDoListAPI.Data
 {
-    public class ToDoListDbContext : DbContext
+    public class ToDoListDbContext : IdentityDbContext<IdentityUser>
     {
         public ToDoListDbContext(DbContextOptions options) : base(options)
         {
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
 
