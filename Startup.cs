@@ -16,6 +16,11 @@ using Microsoft.Extensions.Configuration;
 using AutoMapper;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
+using ToDoListAPI.Options;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using ToDoListAPI.Services;
 
 namespace ToDoListAPI
 {
@@ -46,9 +51,48 @@ namespace ToDoListAPI
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
 
+
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please insert JWT with Bearer into field",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] { }
+                    }
+                });
+
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
+                c.CustomSchemaIds(x => x.FullName);
+            });
+
+       
+
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
+
+
+            //---------------JWT------------------
+            var secret = Configuration["Secret"];
+            services.Configure<TokenGeneratorOptions>(options =>
+            {
+                options.Secret = secret;
+                options.AccessExpiration = TimeSpan.FromMinutes(15);
+              //options.RefreshExpiration = TimeSpan.FromDays(30);
             });
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -56,7 +100,26 @@ namespace ToDoListAPI
                 options.SignIn.RequireConfirmedAccount = false;
             }).AddEntityFrameworkStores<ToDoListDbContext>();
 
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+            var key = Encoding.ASCII.GetBytes(secret);
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+
+            services.AddScoped<TokenGenerator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -80,6 +143,11 @@ namespace ToDoListAPI
             });
 
             app.UseRouting();
+
+            app.UseAuthentication();
+
+            app.UseAuthorization();
+
 
             app.UseEndpoints(endpoints =>
             {
